@@ -171,19 +171,21 @@ test("Assets: all referenced /images/* files in exported HTML exist in out/", ()
 
 test("Cloudflare Pages configuration: _headers exported and enforces security headers", () => {
   const headersPath = path.join(OUT_DIR, "_headers");
-  assert.equal(fs.existsSync(headersPath), true, "Missing out/_headers for Cloudflare Pages");
+  assert.equal(fs.existsSync(headersPath), true, "Missing out/_headers for Cloudflare");
   const headers = fs.readFileSync(headersPath, "utf8");
-  assert.match(headers, /Strict-Transport-Security:/);
-  assert.match(headers, /X-Content-Type-Options:\s*nosniff/);
-  assert.match(headers, /Referrer-Policy:/);
-  assert.match(headers, /X-Frame-Options:\s*DENY/);
-  assert.match(headers, /Permissions-Policy:/);
-  assert.match(headers, /Content-Security-Policy:/);
+  const publicBlock = headers.split("\n/admin/*")[0];
+  assert.match(publicBlock, /Strict-Transport-Security:/);
+  assert.match(publicBlock, /X-Content-Type-Options:\s*nosniff/);
+  assert.match(publicBlock, /Referrer-Policy:/);
+  assert.match(publicBlock, /X-Frame-Options:\s*DENY/);
+  assert.match(publicBlock, /Permissions-Policy:/);
+  assert.match(publicBlock, /Content-Security-Policy:/);
   assert.equal(
-    headers.includes("unsafe-eval"),
+    publicBlock.includes("unsafe-eval"),
     false,
-    "CSP must not allow unsafe-eval"
+    "Public site CSP must not allow unsafe-eval"
   );
+  assert.match(headers, /\/admin\/\*[\s\S]*X-Robots-Tag:\s*noindex, nofollow/);
 });
 
 test("HTTP smoke test: all public routes return 200 and unknown routes return 404", async () => {
