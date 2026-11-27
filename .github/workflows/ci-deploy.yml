@@ -1,4 +1,4 @@
-name: CI & Cloudflare Pages Deployment
+name: CI & Cloudflare Deployment
 
 on:
   pull_request:
@@ -25,10 +25,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Setup Node.js 24 LTS
-        uses: actions/setup-node@39370e3970a6d050c480ffad7ff0ed4d3fdee5af # v4.1.0
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -52,7 +52,7 @@ jobs:
         run: npm test
 
       - name: Upload verified static artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: static-site-out
           path: out/
@@ -60,7 +60,7 @@ jobs:
           if-no-files-found: error
 
   deploy-production:
-    name: Deploy to Cloudflare Pages
+    name: Deploy to Cloudflare
     needs: verify-and-build
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -72,25 +72,27 @@ jobs:
       deployments: write
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
       - name: Download verified static artifact
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: static-site-out
           path: out/
 
       - name: Setup Node.js 24 LTS
-        uses: actions/setup-node@39370e3970a6d050c480ffad7ff0ed4d3fdee5af # v4.1.0
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: .nvmrc
 
-      - name: Deploy verified artifact to Cloudflare Pages
+      - name: Deploy verified static assets to Cloudflare
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          CLOUDFLARE_PROJECT_NAME: ${{ vars.CLOUDFLARE_PROJECT_NAME || 'rajvel-website' }}
         run: |
           if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
-            echo "Cloudflare secrets not configured; relying on Cloudflare Pages Git integration."
+            echo "Cloudflare secrets not configured in GitHub; relying on Cloudflare Git integration."
             exit 0
           fi
-          npx --yes wrangler@3 pages deploy out --project-name="$CLOUDFLARE_PROJECT_NAME" --branch=main
+          npx --yes wrangler@4 deploy
