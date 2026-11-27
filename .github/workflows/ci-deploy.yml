@@ -1,4 +1,4 @@
-name: CI & Netlify Deployment
+name: CI & Cloudflare Pages Deployment
 
 on:
   pull_request:
@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      SITE_URL: ${{ vars.SITE_URL || 'https://rajvelfoodproducts.netlify.app' }}
+      SITE_URL: ${{ vars.SITE_URL || 'https://rajvelfoodproduct.com' }}
       NEXT_TELEMETRY_DISABLED: "1"
 
     steps:
@@ -42,8 +42,8 @@ jobs:
       - name: Run TypeScript typecheck
         run: npm run typecheck
 
-      - name: Run production dependency security audit
-        run: npm audit --omit=dev --audit-level=high
+      - name: Run dependency security audit
+        run: npm audit --audit-level=high
 
       - name: Build static export
         run: npm run build
@@ -59,95 +59,38 @@ jobs:
           retention-days: 7
           if-no-files-found: error
 
-  deploy-preview:
-    name: Deploy Netlify Draft Preview
-    needs: verify-and-build
-    # Only deploy previews for trusted branches in the same repository (never untrusted fork PRs)
-    if: >-
-      github.event_name == 'pull_request' &&
-      github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: read
-      pull-requests: write
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-
-      - name: Setup Node.js 24 LTS
-        uses: actions/setup-node@39370e3970a6d050c480ffad7ff0ed4d3fdee5af # v4.1.0
-        with:
-          node-version-file: .nvmrc
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Download verified static artifact
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
-        with:
-          name: static-site-out
-          path: out/
-
-      - name: Deploy draft preview to Netlify
-        id: netlify_preview
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-        run: |
-          if [ -z "$NETLIFY_AUTH_TOKEN" ] || [ -z "$NETLIFY_SITE_ID" ]; then
-            echo "Netlify secrets not configured; skipping draft deploy."
-            exit 0
-          fi
-          npx netlify deploy --dir=out --message "PR #${{ github.event.pull_request.number }} (${{ github.sha }})" --json > deploy-preview.json
-          DEPLOY_URL=$(node -e "const d=require('./deploy-preview.json'); console.log(d.deploy_url || '');")
-          echo "deploy_url=$DEPLOY_URL" >> "$GITHUB_OUTPUT"
-          echo "Draft preview deployed to: $DEPLOY_URL"
-
   deploy-production:
-    name: Deploy Netlify Production
+    name: Deploy to Cloudflare Pages
     needs: verify-and-build
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment:
       name: production
-      url: ${{ steps.netlify_prod.outputs.deploy_url }}
     permissions:
       contents: read
+      deployments: write
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-
-      - name: Setup Node.js 24 LTS
-        uses: actions/setup-node@39370e3970a6d050c480ffad7ff0ed4d3fdee5af # v4.1.0
-        with:
-          node-version-file: .nvmrc
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
       - name: Download verified static artifact
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: static-site-out
           path: out/
 
-      - name: Deploy verified artifact to Netlify Production
-        id: netlify_prod
+      - name: Setup Node.js 24 LTS
+        uses: actions/setup-node@39370e3970a6d050c480ffad7ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version-file: .nvmrc
+
+      - name: Deploy verified artifact to Cloudflare Pages
         env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_PROJECT_NAME: ${{ vars.CLOUDFLARE_PROJECT_NAME || 'rajvel-website' }}
         run: |
-          npx netlify deploy --dir=out --prod --message "Production deploy (${{ github.sha }})" --json > deploy-prod.json
-          DEPLOY_URL=$(node -e "const d=require('./deploy-prod.json'); console.log(d.url || d.deploy_url || '');")
-          echo "deploy_url=$DEPLOY_URL" >> "$GITHUB_OUTPUT"
-          echo "Production deployed to: $DEPLOY_URL"
-          if [ -z "$DEPLOY_URL" ]; then
-            echo "Deployment URL was not returned by Netlify CLI."
-            exit 1
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "Cloudflare secrets not configured; relying on Cloudflare Pages Git integration."
+            exit 0
           fi
+          npx --yes wrangler@3 pages deploy out --project-name="$CLOUDFLARE_PROJECT_NAME" --branch=main

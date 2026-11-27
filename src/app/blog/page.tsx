@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { BlogListClient } from "@/components/BlogListClient";
+import { getAllBlogArticles } from "@/lib/blogLoader";
 
 export const metadata: Metadata = {
   title: "The Grain Journal — Milling & Kitchen Insights | Raj Vel Food Products",
@@ -14,5 +15,6 @@ export const metadata: Metadata = {
 };
 
 export default function BlogPage() {
-  return <BlogListClient />;
+  const articles = getAllBlogArticles();
+  return <BlogListClient articles={articles} />;
 }

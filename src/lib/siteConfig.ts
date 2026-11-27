@@ -1,14 +1,13 @@
-const DEFAULT_SITE_URL = "https://rajvelfoodproducts.netlify.app";
+const DEFAULT_SITE_URL = "https://rajvelfoodproduct.com";
 
 /**
  * Returns the canonical production origin without a trailing slash.
- * Configure SITE_URL in Netlify and GitHub Actions variables to override.
+ * Configure SITE_URL in Cloudflare Pages / GitHub Actions variables to override.
  */
 export function getSiteUrl(): string {
   const raw =
     process.env.SITE_URL ||
-    process.env.URL ||
-    process.env.DEPLOY_PRIME_URL ||
+    process.env.CF_PAGES_URL ||
     DEFAULT_SITE_URL;
 
   try {

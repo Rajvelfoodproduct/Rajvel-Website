@@ -21,7 +21,7 @@
 /build/
 /.cache/
 /.turbo/
-/.netlify/
+/.wrangler/
 
 # misc
 .DS_Store

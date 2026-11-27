@@ -86,9 +86,8 @@ test("Security: no hardcoded credentials or secrets exist in src/ or out/", () =
   }
 });
 
-test("Security: insecure /admin route is completely removed from src/ and out/", () => {
+test("Security: insecure client-side admin code is removed and Decap CMS uses GitHub backend", () => {
   assert.equal(fs.existsSync(path.join(SRC_DIR, "app", "admin")), false);
-  assert.equal(fs.existsSync(path.join(OUT_DIR, "admin")), false);
   assert.equal(
     fs.existsSync(path.join(SRC_DIR, "components", "BlogAdminClient.tsx")),
     false
@@ -97,6 +96,14 @@ test("Security: insecure /admin route is completely removed from src/ and out/",
     fs.existsSync(path.join(SRC_DIR, "components", "BlogContext.tsx")),
     false
   );
+  assert.equal(fs.existsSync(path.join(ROOT, "netlify.toml")), false);
+  assert.equal(fs.existsSync(path.join(OUT_DIR, "admin", "index.html")), true);
+  assert.equal(fs.existsSync(path.join(OUT_DIR, "admin", "config.yml")), true);
+  const cmsConfig = fs.readFileSync(
+    path.join(OUT_DIR, "admin", "config.yml"),
+    "utf8"
+  );
+  assert.match(cmsConfig, /name:\s*github/);
 });
 
 test("Static export: all public routes, 404.html, sitemap.xml, and robots.txt exist in out/", () => {
@@ -162,18 +169,18 @@ test("Assets: all referenced /images/* files in exported HTML exist in out/", ()
   );
 });
 
-test("Netlify configuration: publishes out/, pins Node 24, and enforces security headers", () => {
-  const toml = fs.readFileSync(path.join(ROOT, "netlify.toml"), "utf8");
-  assert.match(toml, /publish\s*=\s*"out"/);
-  assert.match(toml, /NODE_VERSION\s*=\s*"24"/);
-  assert.match(toml, /Strict-Transport-Security\s*=/);
-  assert.match(toml, /X-Content-Type-Options\s*=\s*"nosniff"/);
-  assert.match(toml, /Referrer-Policy\s*=/);
-  assert.match(toml, /X-Frame-Options\s*=\s*"DENY"/);
-  assert.match(toml, /Permissions-Policy\s*=/);
-  assert.match(toml, /Content-Security-Policy\s*=/);
+test("Cloudflare Pages configuration: _headers exported and enforces security headers", () => {
+  const headersPath = path.join(OUT_DIR, "_headers");
+  assert.equal(fs.existsSync(headersPath), true, "Missing out/_headers for Cloudflare Pages");
+  const headers = fs.readFileSync(headersPath, "utf8");
+  assert.match(headers, /Strict-Transport-Security:/);
+  assert.match(headers, /X-Content-Type-Options:\s*nosniff/);
+  assert.match(headers, /Referrer-Policy:/);
+  assert.match(headers, /X-Frame-Options:\s*DENY/);
+  assert.match(headers, /Permissions-Policy:/);
+  assert.match(headers, /Content-Security-Policy:/);
   assert.equal(
-    toml.includes("unsafe-eval"),
+    headers.includes("unsafe-eval"),
     false,
     "CSP must not allow unsafe-eval"
   );

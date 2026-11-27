@@ -28,21 +28,25 @@ function getCover(article: BlogArticle): string {
   );
 }
 
-export function BlogListClient() {
+export function BlogListClient({
+  articles = BLOG_ARTICLES,
+}: {
+  articles?: BlogArticle[];
+}) {
   const [activeCat, setActiveCat] = useState("ALL");
 
   const categories = useMemo(() => {
     const set = new Set<string>(DEFAULT_CATEGORIES);
-    BLOG_ARTICLES.forEach((a) => {
+    articles.forEach((a) => {
       if (a.category) set.add(a.category.toUpperCase());
     });
     return Array.from(set);
-  }, []);
+  }, [articles]);
 
   const visibleArticles =
     activeCat === "ALL"
-      ? BLOG_ARTICLES
-      : BLOG_ARTICLES.filter((a) => a.category.toUpperCase() === activeCat);
+      ? articles
+      : articles.filter((a) => a.category.toUpperCase() === activeCat);
 
   return (
     <div className="grain-surface bg-[#FAF5E8]">

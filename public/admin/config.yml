@@ -1,0 +1,62 @@
+backend:
+  name: github
+  repo: YOUR_GITHUB_USERNAME/YOUR_REPO_NAME
+  branch: main
+
+site_url: https://rajvelfoodproduct.com
+display_url: https://rajvelfoodproduct.com
+
+media_folder: "public/images/blog"
+public_folder: "/images/blog"
+
+collections:
+  - name: "blog"
+    label: "Blog Articles"
+    label_singular: "Blog Article"
+    folder: "content/blog"
+    create: true
+    delete: true
+    extension: "json"
+    format: "json"
+    slug: "{{slug}}"
+    summary: "{{title}} ({{date}})"
+    fields:
+      - label: "Title"
+        name: "title"
+        widget: "string"
+        required: true
+      - label: "Category"
+        name: "category"
+        widget: "select"
+        options:
+          - "INGREDIENT GUIDE"
+          - "QUALITY & PROCESS"
+          - "KITCHEN OPERATIONS"
+          - "RECIPES & TIPS"
+        default: "INGREDIENT GUIDE"
+      - label: "Publish Date (e.g. Nov 2026)"
+        name: "date"
+        widget: "string"
+        default: "Nov 2026"
+      - label: "Read Time"
+        name: "readTime"
+        widget: "string"
+        default: "2 min read"
+      - label: "Cover Image"
+        name: "coverImage"
+        widget: "image"
+        required: false
+        default: "/images/grains.jpg"
+      - label: "Short Summary (Excerpt)"
+        name: "excerpt"
+        widget: "text"
+        required: true
+      - label: "Article Paragraphs"
+        name: "content"
+        widget: "list"
+        minimize_collapsed: false
+        summary: "{{fields.paragraph}}"
+        field:
+          label: "Paragraph"
+          name: "paragraph"
+          widget: "text"

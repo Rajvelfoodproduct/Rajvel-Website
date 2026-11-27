@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, Clock, ShieldCheck } from "lucide-react";
-import { BLOG_ARTICLES, COMPANY_INFO } from "@/data/siteData";
+import { COMPANY_INFO } from "@/data/siteData";
+import { getAllBlogArticles, getBlogArticleBySlug } from "@/lib/blogLoader";
 
 const ARTICLE_COVERS: Record<string, string> = {
   "pure-gram-flour-vs-multi-grain-flour": "/images/grain-blend.jpg",
@@ -12,7 +13,7 @@ const ARTICLE_COVERS: Record<string, string> = {
 };
 
 export function generateStaticParams() {
-  return BLOG_ARTICLES.map((article) => ({ slug: article.slug }));
+  return getAllBlogArticles().map((article) => ({ slug: article.slug }));
 }
 
 export async function generateMetadata({
@@ -21,12 +22,14 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const article = BLOG_ARTICLES.find((a) => a.slug === slug);
+  const article = getBlogArticleBySlug(slug);
   if (!article) {
     return {
       title: "Article Not Found | Raj Vel Food Products",
     };
   }
+  const cover =
+    article.coverImage || ARTICLE_COVERS[article.slug] || "/images/grains.jpg";
   return {
     title: `${article.title} | Raj Vel Food Products`,
     description: article.excerpt,
@@ -34,7 +37,7 @@ export async function generateMetadata({
       title: `${article.title} | Raj Vel Food Products`,
       description: article.excerpt,
       type: "article",
-      images: [ARTICLE_COVERS[article.slug] || "/images/grains.jpg"],
+      images: [cover],
     },
   };
 }
@@ -45,14 +48,17 @@ export default async function BlogArticlePage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const article = BLOG_ARTICLES.find((a) => a.slug === slug);
+  const article = getBlogArticleBySlug(slug);
 
   if (!article) {
     notFound();
   }
 
-  const otherArticles = BLOG_ARTICLES.filter((a) => a.slug !== article.slug);
-  const coverImage = ARTICLE_COVERS[article.slug] || "/images/grains.jpg";
+  const otherArticles = getAllBlogArticles().filter(
+    (a) => a.slug !== article.slug
+  );
+  const coverImage =
+    article.coverImage || ARTICLE_COVERS[article.slug] || "/images/grains.jpg";
 
   return (
     <div className="grain-surface bg-[#FAF5E8] py-8 sm:py-12">

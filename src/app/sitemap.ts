@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
-import { BLOG_ARTICLES, PRODUCTS } from "@/data/siteData";
+import { PRODUCTS } from "@/data/siteData";
+import { getAllBlogArticles } from "@/lib/blogLoader";
 import { SITE_URL } from "@/lib/siteConfig";
 
 export const dynamic = "force-static";
@@ -49,11 +50,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.9,
   }));
 
-  const blogRoutes: MetadataRoute.Sitemap = BLOG_ARTICLES.map((article) => ({
-    url: `${SITE_URL}/blog/${article.slug}/`,
-    changeFrequency: "monthly",
-    priority: 0.7,
-  }));
+  const blogRoutes: MetadataRoute.Sitemap = getAllBlogArticles().map(
+    (article) => ({
+      url: `${SITE_URL}/blog/${article.slug}/`,
+      changeFrequency: "monthly",
+      priority: 0.7,
+    })
+  );
 
   return [...staticRoutes, ...productRoutes, ...blogRoutes];
 }
