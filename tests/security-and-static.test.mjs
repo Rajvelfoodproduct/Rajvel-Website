@@ -22,7 +22,7 @@ function walkFiles(dir) {
   return results;
 }
 
-const EXPECTED_ROUTES = [
+const CORE_ROUTES = [
   "/",
   "/about/",
   "/products/",
@@ -32,11 +32,19 @@ const EXPECTED_ROUTES = [
   "/services/",
   "/facilities/",
   "/blog/",
-  "/blog/pure-gram-flour-vs-multi-grain-flour/",
-  "/blog/why-milling-temperature-and-grain-cleaning-matter/",
-  "/blog/storing-30kg-gram-flour-bags-for-maximum-freshness/",
   "/contact/",
 ];
+
+function getDynamicBlogRoutes() {
+  const blogDir = path.join(ROOT, "content", "blog");
+  if (!fs.existsSync(blogDir)) return [];
+  return fs
+    .readdirSync(blogDir)
+    .filter((f) => f.endsWith(".json"))
+    .map((f) => `/blog/${path.basename(f, ".json")}/`);
+}
+
+const EXPECTED_ROUTES = [...CORE_ROUTES, ...getDynamicBlogRoutes()];
 
 const SECRET_PATTERNS = [
   { name: "Compromised legacy admin password", regex: /rajvel@2026/i },
