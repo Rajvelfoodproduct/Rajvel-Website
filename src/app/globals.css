@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+:root {
+  --font-serif: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-sans: "Outfit", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --bg-cream: #FAF5E8;
+  --bg-cream-soft: #FFFDF7;
+  --green-deep: #103822;
+  --green-forest: #1A5434;
+  --green-mid: #286B43;
+  --gold-harvest: #C98A2C;
+  --lime-accent: #D5EA88;
+  --sage-soft: #E5EEDD;
+  --ink-dark: #10291B;
+  --ink-muted: #4A5E52;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    background-color: var(--bg-cream);
+    color: var(--ink-dark);
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  img,
+  video,
+  svg {
+    max-width: 100%;
+  }
+
+  a,
+  button,
+  [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  /* Prevent iOS Safari zoom-on-focus and give comfortable touch fields */
+  @media (max-width: 767px) {
+    input,
+    select,
+    textarea {
+      font-size: 16px !important;
+    }
+  }
+
+  body {
+    background-color: var(--bg-cream);
+    color: var(--ink-dark);
+    font-family: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    overflow-x: clip;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, .font-serif-display {
+    font-family: var(--font-serif), Georgia, "Times New Roman", serif;
+  }
+}
+
+.font-serif-display {
+  font-family: var(--font-serif), Georgia, "Times New Roman", serif;
+}
+
+/* Subtle organic grain paper texture overlay */
+.grain-surface {
+  background-image: radial-gradient(rgba(18, 67, 40, 0.035) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
+/* Custom subtle scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F1ECE0;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #9BB4A2;
+  border-radius: 9999px;
+  border: 2px solid #F1ECE0;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #124328;
+}
+

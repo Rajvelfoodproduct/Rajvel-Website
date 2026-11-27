@@ -1,0 +1,36 @@
+{
+  "name": "raj-vel-food-products",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=22.0.0 <25.0.0"
+  },
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "dev:clean": "node -e \"const fs=require('fs');for(const d of ['.next','.next-dev','out'])fs.rmSync(d,{recursive:true,force:true});\" && next dev --turbopack",
+    "dev:webpack": "next dev",
+    "build": "next build",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src tests",
+    "test": "node --test tests/security-and-static.test.mjs",
+    "test:all": "npm run lint && npm run typecheck && npm run build && npm test"
+  },
+  "dependencies": {
+    "framer-motion": "^12.43.0",
+    "lucide-react": "^0.475.0",
+    "next": "16.4.6",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.5",
+    "@types/node": "^22.20.7",
+    "@types/react": "^19.3.3",
+    "@types/react-dom": "^19.3.0",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "16.4.6",
+    "netlify-cli": "27.20.1",
+    "tailwindcss": "^4.3.5",
+    "typescript": "^5.9.3"
+  }
+}
