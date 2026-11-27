@@ -3,6 +3,7 @@
   "name": "rajvel-website",
   "main": "./worker.js",
   "compatibility_date": "2026-11-23",
+  "keep_vars": true,
   "assets": {
     "directory": "./out",
     "binding": "ASSETS",
